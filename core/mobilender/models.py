@@ -25,7 +25,7 @@ class Person(models.Model):
     kind = models.CharField(max_length=2, choices=USER_KIND, null=False)
 
     def __str__(self) -> str:
-        return f'Person- {self.name}'
+        return f'{self.name}-{self.id}'
 
 
 class Address(models.Model):
@@ -110,6 +110,9 @@ class Sites(models.Model):
     reference = models.CharField(max_length=50)
     code = models.CharField(max_length=50)
 
+    def __str__(self) -> str:
+        return f'{self.name}'
+
 class Orders(models.Model):
 
     DISTRIBUTION_CENTER = 'DS'
@@ -128,11 +131,13 @@ class Orders(models.Model):
     article_id = models.ForeignKey('mobilender.Articles', on_delete=models.CASCADE)
     quantity = models.IntegerField(null=False)
     delivery_to = models.CharField(max_length=2, choices=SITES)
-
     # content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     # object_id= models.PositiveIntegerField()
     # site = content_object = GenericForeignKey('content_type', 'object_id')
-    sites = models.ForeignKey(Sites, on_delete=models.CASCADE)
+    site_id = models.ForeignKey("mobilender.Sites", on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f'{self.id}'
 
 class OrderStatus(models.Model):
 
@@ -145,23 +150,25 @@ class OrderStatus(models.Model):
         (ON_GOING, 'On Going'),
         (READY, 'Ready')
     ]
-    status = models.CharField(max_length=2, choices=STATUS)
+    status = models.CharField(max_length=2, choices=STATUS, default='R')
     order_id = models.ForeignKey(Orders, on_delete=models.CASCADE)
 
+    def __str__(self) -> str:
+        return f'order: {self.order_id}'
 
 class OrdersRecieved(models.Model):
     status = models.BooleanField(default=False)
-    person_id = models.ForeignKey(Person, on_delete=models.CASCADE)
-    order_id = models.ForeignKey(Orders, on_delete=models.CASCADE)
+    person_id = models.ForeignKey('mobilender.Person', on_delete=models.CASCADE)
+    order_id = models.ForeignKey('mobilender.Orders', on_delete=models.CASCADE)
 
 class OrdersDelivered(models.Model):
     status = models.BooleanField(default=False)
-    order_id = models.ForeignKey(Orders, on_delete=models.CASCADE)
+    order_id = models.ForeignKey('mobilender.Orders', on_delete=models.CASCADE)
 
 
 class OrdersFullFilled(models.Model):
     status = models.BooleanField(default=False)
-    order_id = models.ForeignKey(Orders, on_delete=models.CASCADE)
+    order_id = models.ForeignKey('mobilender.Orders', on_delete=models.CASCADE)
 
 #implement cool signal for this
 

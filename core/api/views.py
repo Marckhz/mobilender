@@ -1,3 +1,5 @@
+from api.serializers import SitesSerializer
+from mobilender.models import Sites
 from api.serializers import OrderStatusSerializer
 from mobilender.models import OrderStatus
 from api.serializers import OrdersSerializer
@@ -29,6 +31,15 @@ class ArticlesViewSet(viewsets.ModelViewSet):
 class OrdersViewSet(viewsets.ModelViewSet):
     queryset = Orders.objects.all()
     serializer_class = OrdersSerializer
+
+
+class SiteViewSet(viewsets.ModelViewSet):
+    queryset = Sites.objects.all()
+    serializer_class = SitesSerializer
+
+class OrderStatusViewSet(viewsets.ModelViewSet):
+    queryset = OrderStatus.objects.all()
+    serializer_class = OrderStatusSerializer
 
 # class UrgentOrdersViewSet(generics.ListAPIView):
 #     serializer_class = OrderStatusSerializer

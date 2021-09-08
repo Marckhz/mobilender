@@ -7,11 +7,22 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 
 from mobilender.models import Person, Address, UserRanks
+import json
 
 
 class RepresentationCustom(serializers.PrimaryKeyRelatedField):
+    def __init__(self, field, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.__field = field
+    
     def to_representation(self, value):
-        return value.name
+        field = self.__field
+        name = getattr(value, field)  if hasattr(value, field) else value.id   
+        return name
+
+
+    def use_pk_only_optimization(self):
+        return False
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
@@ -44,6 +55,7 @@ class ClientSerializer(serializers.ModelSerializer):
                   'address',
                   'kind',
                   'created_on',
+                  'id'
                 ]
 
     def create(self, validated_data):
@@ -62,10 +74,11 @@ class ClientSerializer(serializers.ModelSerializer):
 
 
 class ArticlesSerializer(serializers.ModelSerializer):
-    vendor_id = RepresentationCustom(many=True, queryset=Person.objects.all())
+    vendor_id = RepresentationCustom(many=True, queryset=Person.objects.all(), field='name')
     class Meta:
         model = Articles
         fields = ['code', 'description', 'price', 'vendor_id','id']
+
 
 class SitesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -73,7 +86,13 @@ class SitesSerializer(serializers.ModelSerializer):
         fields = ['kind', 'name', 'reference', 'code','id']
 
 class OrdersSerializer(serializers.ModelSerializer):
-    sites = RepresentationCustom(many=True, queryset=Sites.objects.all() )
+    
+    site_id = RepresentationCustom(many=False, queryset=Sites.objects.all(), field='name' )
+    on_delivery_date = serializers.DateField(format=None, input_formats=['%Y-%m-%d'])
+    on_request_date = serializers.DateField(format=None, input_formats=['%Y-%m-%d'])
+    person_id = RepresentationCustom(many=False, queryset=Person.objects.all(), field='name' )
+    article_id = RepresentationCustom(many=False, queryset=Articles.objects.all(), field='code')
+
     class Meta:
         model = Orders
         fields = ['on_request_date',
@@ -83,11 +102,19 @@ class OrdersSerializer(serializers.ModelSerializer):
                   'delivery_to',
                   'person_id',
                   'article_id',
-                  'sites',
+                  'site_id',
                   'id'
                 ]
 
+    def create(self, validate_data):
+        site_id = validate_data.pop('site_id')
+        if site_id:
+            site_id = site_id
+        order = Orders.objects.create(site_id=site_id, **validate_data)
+        return order
+        
 class OrderStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderStatus
-        fields = ['status', 'finished', 'order_id']
+        fields = ['status',  'order_id']
+

@@ -1,3 +1,5 @@
+from api.views import OrderStatusViewSet
+from api.views import SiteViewSet
 from django.conf.urls import url
 from api.views import OrdersViewSet
 from api.views import PersonViewSet, ArticlesViewSet
@@ -22,6 +24,8 @@ router = routers.DefaultRouter()
 router.register('client', PersonViewSet)
 router.register('articles', ArticlesViewSet)
 router.register('orders', OrdersViewSet)
+router.register('sites', SiteViewSet)
+router.register('orders-status', OrderStatusViewSet)
 
 
 urlpatterns = router.urls
